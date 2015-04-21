@@ -1,0 +1,300 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset=utf-8 />
+    <title>Cape Cod Baseball League 2015</title>
+
+    <link href='http://fonts.googleapis.com/css?family=Playball' rel='stylesheet' type='text/css'>
+
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.6/mapbox.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.6/mapbox.css' rel='stylesheet' />
+
+    <script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/leaflet.markercluster.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/MarkerCluster.css' rel='stylesheet' />
+    <link href='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-markercluster/v0.4.0/MarkerCluster.Default.css' rel='stylesheet' />
+
+    <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.js"></script>
+
+    <!--<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>-->
+
+    <script src="players.js" type="text/javascript"></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        #map {
+            position:absolute;
+            top: 0;
+            left:0;
+            bottom: 0;
+            width:100%;
+        }
+      .mycluster {
+			width: 30px;
+			height: 30px;
+			background-image: url('img/ball.png');
+            background-size:contain;
+			text-align: center;
+			font-size: 14px;
+            font-weight:bold;
+            border:0px solid red;
+            border-radius:100%;
+            padding-top:7px;
+            font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; ;
+		}
+        #CCBL{
+            width:20.5vw;
+            height:10vw;
+            border-radius:5px;
+            border:0px solid gray;
+            background-color:white;
+        }
+        .scroll{
+            position:absolute;
+            bottom:10px;
+            left:32.5vw;
+            width:35vw;
+            height:11vw;
+            background-color:none;
+            z-index: 10;
+            border-radius:10px;
+            opacity:0.75;
+        }
+        #scrollDiv{
+            overflow-x:hidden;
+            overflow-y:hidden;
+            white-space:none;
+        }
+        #leftDiv{
+            height:100%;
+            width:137vw;
+        }
+        .teamButton{
+            display:inline-block;
+            float:left;
+            height:10vw;
+            width:10vw;
+            border-radius:5px;
+            border:0px solid gray;
+            background-color:white;
+            margin-left:0.5vw;
+            margin-top:0.5vw;
+        }
+        #mtcc{
+            display:inline-block;
+            float:left;
+            height:10vw;
+            width:10vw;
+            border-radius:5px;
+            border:0px solid gray;
+            background-color:white;
+            margin-left:0.5vw;
+            margin-top:0.5vw;
+        }
+        .active{
+            background-color:gray;
+        }
+        .teamButton img{
+            height:100%;
+            width:100%;
+        }
+        .scrollButton{
+            height:10vw;
+            width:1vw;
+            position:absolute;
+            background-color:lightgray;
+            border:0px solid red;
+            z-index:30;
+            margin-top:0.5vw;
+            font-size:5vw;
+            vertical-align:middle;
+        }
+        .scrollButton:hover, .teamButton:hover{
+            cursor:pointer;
+        }
+        #scrollLeft{
+            left:-1vw;
+            border-top-left-radius:10px;
+            border-bottom-left-radius:10px;
+            background-image: url('img/left.png');
+            background-size:cover;
+            background-repeat:no-repeat;
+        }
+        #scrollRight{
+            right:-1vw;
+            border-top-right-radius:10px;
+            border-bottom-right-radius:10px;
+            background-image: url('img/right.png');
+            background-size:cover;
+            background-repeat:no-repeat;
+            background-position:right;
+        }
+        #stuff{
+            position:absolute;
+            height:auto;
+            width:auto;
+            border:0px solid red;
+            bottom:2.5vw;
+            left:1.5vw;
+            z-index:1;
+            color:white;
+            opacity:0.8;
+            font-family:'Playball','Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;         
+        }
+        #town{
+            font-size:2.5vw;
+        }
+        #teamName{
+            font-size:4vw;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="stuff">
+        <div id="town">Cape Cod Baseball League</div>
+        <div id="teamName">Opening Day 2015</div>
+    </div>
+
+    <div id="scrollButtons" class="scroll">
+        <div id='scrollLeft' class='scrollButton'></div>
+        <div id='scrollRight' class='scrollButton'></div>
+    </div>
+
+    <div id="scrollDiv" class='scroll'>
+        <div id="leftDiv"></div>
+    </div>
+   
+    <div id='map'></div>
+
+    <script>
+
+        L.mapbox.accessToken = 'pk.eyJ1IjoiY2hhc2VncnViZXIiLCJhIjoidV9tdHNYSSJ9.RRyvDLny4YwDwzPCeOJZrA';
+
+        var southWest = L.latLng(-90, -180),
+            northEast = L.latLng(90, 180),
+            bounds = L.latLngBounds(southWest, northEast);
+
+        var map = L.mapbox.map('map', 'chasegruber.8ff350e8', { minZoom: 3 , maxZoom:18,
+            maxBounds: bounds, zoomControl:false})
+           .setView([37.8, -96], 4);
+        new L.Control.Zoom({ position: 'topright'}).addTo(map);
+
+        var featureLayer = L.mapbox.featureLayer(playerJSON);
+        var playerCluster = new L.MarkerClusterGroup({
+            iconCreateFunction: function (cluster) {
+                var markers = cluster.getChildCount();
+                return L.divIcon({html: markers, className: 'mycluster', iconSize:L.point(45,45)})
+            },
+            spiderfyOnMaxZoom: false,
+            showCoverageOnHover: false,
+            spiderLegPolylineOptions: {weight: 1, color:'#fff'},
+            maxClusterRadius:20
+        });
+
+        playerCluster.on('clusterclick', function (a) {
+            var count = a.layer.getChildCount();
+            var currZoom = map.getZoom();
+
+            if (currZoom > 6) {            
+                a.layer.zoomToBounds();
+                if (count < 13) {
+                    a.layer.spiderfy();
+                };
+            };  
+        });
+
+        var teamNames = ["CCBL"];
+        var teamLayers = [playerCluster];
+        featureLayer.eachLayer(function (layer) {
+            var properties = layer.toGeoJSON().properties;
+            var name = properties.first + " " + properties.last;
+            var school = properties.school;
+            var capeteam = properties.capeteam;
+            var popup = "<p>" + name + "</p><p>" + school + "</p><p>" + capeteam + "</p>";
+            layer.bindPopup(popup);    
+
+            if (teamNames.indexOf(capeteam) == -1){
+                teamNames.push(capeteam);
+                var team = L.featureGroup();
+                team.addLayer(layer);
+                teamLayers.push(team);
+            }else{
+                var index = teamNames.indexOf(capeteam);
+                var team = teamLayers[index];
+                team.addLayer(layer);
+            }
+            layer.setIcon(L.mapbox.marker.icon({
+                    'marker-color': properties.color,
+                    'marker-size': 'large',
+                    'marker-symbol': 'baseball'
+                }));
+
+            playerCluster.addLayer(layer);
+        });
+
+        map.addLayer(teamLayers[0]);  
+
+        for (var i=0; i<teamNames.length; i++){
+            var button = "<div class='teamButton team' id='"+teamNames[i]+"'title='"+teamNames[i]+"'><img src='logos/"+teamNames[i].toLowerCase()+".png' /></div>";
+            $("#leftDiv").append(button);
+        }
+        var mtcc = "<div class='teamButton' title='Maptime Cape Cod'><a target='_blank' href='http://maptimecapecod.github.io'><img src='logos/mtcc.png' /></a></div>";
+        $("#leftDiv").append(mtcc);
+
+        $(".team").on("click", function() {
+            var team = $(this).attr('id');
+            var index = teamNames.indexOf(team);
+            for (var i = 0; i <teamLayers.length; i++){
+                if (index == i){
+                    teamLayers[i].addTo(map);
+                    map.fitBounds(teamLayers[i].getBounds());
+                }else{
+                    map.removeLayer(teamLayers[i]);
+                }
+            }
+            $(".teamButton").removeClass('active');
+            $(this).addClass('active');
+        });
+
+        $("#scrollRight").on("mouseover mousedown touchstart", function (e) {
+            e.preventDefault();
+            var divWidth = $("#leftDiv").width();
+            var scrollWidth = $("#scrollDiv").width();
+            var dist = "-"+(divWidth-scrollWidth)+"px";
+            $("#leftDiv").stop(true).animate({marginLeft:dist},10000)
+        }); 
+        $("#scrollRight").on("mouseout mouseup touchend", function (e) {
+            e.preventDefault();
+            $("#leftDiv").stop(true)
+        });
+
+
+        $("#scrollLeft").on("mouseover mousedown touchstart", function (e) {
+            e.preventDefault()
+            var divWidth = $("#leftDiv").width();
+            var dist = "+"+divWidth+"px";
+            $("#leftDiv").stop(true).animate({marginLeft:'2px'},5000)
+            });
+        $("#scrollLeft").on("mouseout mouseup touchend", function (e) {
+            e.preventDefault();
+            $("#leftDiv").stop(true)
+        });
+
+    </script>
+
+</body>
+</html>
